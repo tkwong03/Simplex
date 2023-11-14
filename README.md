@@ -1,2 +1,2 @@
 # Simplex
-A program wirtten in Python to solve Linear Programming problems using the Simplex method.
+A program written in Python (and using the Numpy library) to solve Linear Programming problems using the Simplex method.
