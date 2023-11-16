@@ -4,9 +4,9 @@ import numpy as np
 class standardLP:
     # Create a lp problem in standard form
     def __init__(self, c, A, b):    
-        self.c = np.array(c)[np.newaxis].T
-        self.A = np.array(A)
-        self.b = np.array(b)[np.newaxis].T
+        self.c = np.array(c, dtype=float)[np.newaxis].T
+        self.A = np.array(A, dtype=float)
+        self.b = np.array(b, dtype=float)[np.newaxis].T
 
     # Solves the lp problem. Assumes the problem has an optimal
     def solve(self): 
@@ -30,7 +30,7 @@ class standardLP:
 
         # Simplex algorithm
         while (np.any(c > 0)):
-            # Get entering and leaving variables. Update the dictionary
+            # Get entering and leaving variables
             eIdx = getEntering(c, nonbasic) 
             lIdx = getLeaving(A[:,[eIdx]], b, basic)
             print(f"x{eIdx + 1} entering, x{lIdx + 1} leaving")
@@ -40,6 +40,8 @@ class standardLP:
 
             basic.sort()
             nonbasic.sort()
+
+            # Update the dictionary
             
             B = A[:,basic]
             BInvs = np.linalg.inv(B)
@@ -63,7 +65,7 @@ def getEntering(c, nonbasic):
 
 # Returns the index of the leaving variable given the column of the entering variable and b
 def getLeaving(e, b, basic):
-    epsilon = np.max(b[b > 0])/1e+10
+    epsilon = np.max(b[b > 0])/1e+100
     ratio = e/(b + epsilon)
 
     maxRatio = np.max(ratio)
