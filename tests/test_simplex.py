@@ -31,7 +31,7 @@ class TestSimplexMethods(unittest.TestCase):
         e = np.array([-1,2,3])[np.newaxis].T 
         self.assertEqual(simplex.getLeaving(e,b,basic), 1)
 
-    def test_solve(self):
+    def test_solve_optimal(self):
         c = [6,8,5,9]
         b = [5,3]
         A = [[2,1,1,3],
@@ -39,7 +39,7 @@ class TestSimplexMethods(unittest.TestCase):
 
         lp = simplex.standardLP(c, A, b)
 
-        answer = lp.solve()
+        lp.solve()
 
         A = np.array(
                 [[1,-2,0,1,1,-1],
@@ -51,16 +51,39 @@ class TestSimplexMethods(unittest.TestCase):
         nonbasic = [1,3,4,5]
         value = 17 
 
-        print("testing")
-        print(answer[0])
-        print(A)
+        self.assertEqual(lp.status, "OPTIMAL")
+        self.assertTrue(np.allclose(lp.solution[0], A))
+        self.assertTrue(np.allclose(lp.solution[1], b))
+        self.assertTrue(np.allclose(lp.solution[2], c))
+        self.assertEqual(lp.solution[3], value)
+        self.assertEqual(lp.solution[4], basic)
+        self.assertEqual(lp.solution[5], nonbasic)
 
-        self.assertTrue(np.allclose(answer[0], A))
-        self.assertTrue(np.allclose(answer[1], b))
-        self.assertTrue(np.allclose(answer[2], c))
-        self.assertEqual(answer[3], value)
-        self.assertEqual(answer[4], basic)
-        self.assertEqual(answer[5], nonbasic)
+    def test_solve_infeasible(self):
+        c = [-2, -1]
+        b = [-1,-2,1]
+        A = [[-1,1],
+             [-1,-2],
+             [0,1]]
+
+        lp = simplex.standardLP(c,A,b)
+
+        lp.solve()
+
+        self.assertEqual(lp.status, "INFEASIBLE")
+
+    def test_solve_unbounded(self):
+        c = [1,-1]
+        A = [[-2,3],
+             [0,4],
+             [0,-1]]
+        b = [5,7,0]
+
+        lp = simplex.standardLP(c,A,b)
+        lp.solve()
+
+        self.assertEqual(lp.status, "UNBOUNDED")
+
         
 
 if __name__ == '__main__':

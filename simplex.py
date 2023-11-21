@@ -8,7 +8,7 @@ class standardLP:
         self.A = np.array(A, dtype=float)
         self.b = np.array(b, dtype=float)[np.newaxis].T
 
-    # Solves the lp problem. Assumes the problem has an optimal
+    # Solves the lp problem. Sets self.status to "OPTIMAL", "INFEASIBLE", "UNBOUNDED" accordingly
     def solve(self): 
         # Create the basic and nonbasic index sets
         n = self.c.size
@@ -28,11 +28,21 @@ class standardLP:
 
         value = 0
 
+        # Check for infeasibility
+        if (np.any(b < 0)):
+            self.status = "INFEASIBLE"
+            return
+
         # Simplex algorithm
         while (np.any(c > 0)):
             # Get entering and leaving variables
             eIdx = getEntering(c, nonbasic) 
+
             lIdx = getLeaving(A[:,[eIdx]], b, basic)
+            if (lIdx == -1):
+                self.status = "UNBOUNDED"
+                return
+
             print(f"x{eIdx + 1} entering, x{lIdx + 1} leaving")
 
             basic = [i for i in basic if i != lIdx] + [eIdx]
@@ -53,10 +63,9 @@ class standardLP:
             c = c.T - c.T[:,basic]@A 
             c = c.T 
 
-
-        return A, b, c, value, basic, nonbasic
-
-
+        # Simplex algorithm terminates and finds optimal 
+        self.status = "OPTIMAL"
+        self.solution = (A,b,c,value,basic,nonbasic)
 
 # Returns the index of the entering variable according to Bland's rule
 def getEntering(c, nonbasic):
@@ -67,6 +76,8 @@ def getEntering(c, nonbasic):
 def getLeaving(e, b, basic):
     epsilon = np.max(b[b > 0])/1e+100
     ratio = e/(b + epsilon)
+    if (np.all(ratio <= 0)):
+        return -1
 
     maxRatio = np.max(ratio)
     rowIdx = np.where(ratio == maxRatio)[0][0]
