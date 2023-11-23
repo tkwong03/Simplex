@@ -59,7 +59,7 @@ class TestSimplexMethods(unittest.TestCase):
         self.assertEqual(lp.solution[4], basic)
         self.assertEqual(lp.solution[5], nonbasic)
 
-    def test_solve_infeasible(self):
+    def test_solve_initial_infeasible(self):
         c = [-2, -1]
         b = [-1,-2,1]
         A = [[-1,1],
@@ -70,7 +70,21 @@ class TestSimplexMethods(unittest.TestCase):
 
         lp.solve()
 
-        self.assertEqual(lp.status, "INFEASIBLE")
+        A = np.array(
+                 [[1,0,-2/3,-1/3,0],
+                 [0,1,1/3,-1/3,0],
+                 [0,0,-1/3,1/3,1]]
+                , dtype=float)
+        b = np.array([4/3,1/3,2/3], dtype=float)[np.newaxis].T
+        c = np.array([0,0,-1,-1,0], dtype=float)[np.newaxis].T
+
+        self.assertEqual(lp.status, "OPTIMAL")
+        self.assertTrue(np.allclose(lp.solution[0], A))
+        self.assertTrue(np.allclose(lp.solution[1], b))
+        self.assertTrue(np.allclose(lp.solution[2], c))
+        self.assertEqual(lp.solution[3], -3.0)
+        self.assertEqual(lp.solution[4], [0,1,4])
+        self.assertEqual(lp.solution[5], [2,3])
 
     def test_solve_unbounded(self):
         c = [1,-1]
@@ -83,6 +97,18 @@ class TestSimplexMethods(unittest.TestCase):
         lp.solve()
 
         self.assertEqual(lp.status, "UNBOUNDED")
+
+    def test_solve_infeasible_problem(self):
+        c = [1,-1,1]
+        b = [4,-5,-1]
+        A = [[2,-1,-2],
+             [2,-3,-1],
+             [-1,1,1]]
+
+        lp = simplex.standardLP(c,A,b)
+        lp.solve()
+
+        self.assertEqual(lp.status, "INFEASIBLE")
 
         
 
